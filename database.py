@@ -3,6 +3,7 @@ import logging
 import random
 import time
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 
 import aiosqlite
 
@@ -10,6 +11,8 @@ from config import (
     ACTIVITY_REWARD_MAX,
     ACTIVITY_REWARD_MIN,
     ACTIVITY_REWARD_SECONDS,
+    DAILY_MAX,
+    DAILY_MIN,
     DB_PATH,
     TZ,
 )
@@ -85,6 +88,8 @@ CHAT_FIELDS = {
     "title", "kind", "welcome", "antilinks", "antispam", "salawat",
     "ai", "max_warns", "welcome_text", "rules",
 }
+
+
 async def _fix_transactions():
     """يصلّح جدول transactions القديم لو شكله مختلف عن الجديد."""
     cur = await _db.execute("PRAGMA table_info(transactions)")
@@ -105,6 +110,7 @@ async def _fix_transactions():
     """)
     log.info("transactions table rebuilt (old one kept as transactions_old)")
 
+
 async def init():
     global _db
     _db = await aiosqlite.connect(DB_PATH)
@@ -121,6 +127,7 @@ async def init():
     await _fix_transactions()
     await _db.commit()
     log.info("Database ready: %s", DB_PATH)
+
 
 async def close():
     if _db:
@@ -256,7 +263,6 @@ async def vault_move(user_id, amount):
 
 async def claim_daily(user_id):
     """يرجع (reward, streak) أو None لو استلمها النهارده."""
-    from datetime import datetime, timedelta
     today = datetime.now(TZ).date()
     async with tx() as c:
         cur = await c.execute("SELECT last_daily, streak FROM users WHERE user_id = ?", (user_id,))
@@ -267,7 +273,6 @@ async def claim_daily(user_id):
             return None
         yesterday = (today - timedelta(days=1)).isoformat()
         streak = (row["streak"] or 0) + 1 if row["last_daily"] == yesterday else 1
-        from config import DAILY_MAX, DAILY_MIN
         reward = random.randint(DAILY_MIN, DAILY_MAX) + min(streak, 7) * 50
         await c.execute(
             "UPDATE users SET balance = balance + ?, last_daily = ?, streak = ? WHERE user_id = ?",
