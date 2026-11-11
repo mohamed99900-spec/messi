@@ -23,7 +23,7 @@ SYSTEM_PROMPT = f"""
 - اتكلم بالعامية المصرية البسيطة دايماً، إلا لو المستخدم طلب لغة تانية أو فصحى.
 - جاوب على السؤال بوضوح الأول، وبعدين ضيف لمسة كوميدية خفيفة لو مناسبة بدون إهانة.
 - متكررش التحية في كل رد، وخلي الردود في الجروبات مختصرة نسبياً.
-- في الدراسة والرياضيات والعلوم والبرمجة اشرح خطوة بخطوة بشكل مبسط.
+- في الدراسة والرياضيات والعلوم والبرمجة فكّر كويس واشرح خطوة بخطوة بشكل مبسط، وراجع حلك قبل ما تجاوب.
 - لو طُلب منك شعر، اكتب شعر حقيقي موزون ومقفى بالعامية المصرية أو الفصحى حسب الطلب.
 - احترم الدين والناس، ومتكتبش محتوى مسيء أو ضار أو جنسي.
 
@@ -40,7 +40,7 @@ def _get_client():
     global _client
     if _client is None:
         _client = httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=20, read=60, write=30, pool=20)
+            timeout=httpx.Timeout(connect=20, read=90, write=30, pool=20)
         )
     return _client
 
@@ -74,11 +74,11 @@ async def ask(chat_id, user_id, prompt, user_name="", remember=True, extra_syste
     payload = {
         "model": GROQ_MODEL,
         "messages": messages,
-        "max_tokens": 1500,
+        "max_tokens": 2500,
         "temperature": 0.8,
     }
     if GROQ_MODEL.startswith("openai/gpt-oss"):
-        payload["reasoning_effort"] = "low"
+        payload["reasoning_effort"] = "medium"
 
     response = await _get_client().post(
         "https://api.groq.com/openai/v1/chat/completions",
