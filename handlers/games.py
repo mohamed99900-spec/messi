@@ -37,6 +37,17 @@ async def reward(user, coins, xp, won=True):
     return level_up_text(new_level)
 
 
+# ---------------- قايمة الألعاب ----------------
+
+@command("لعبه", "العاب", "games")
+async def cmd_game(update, context, args):
+    await reply(
+        update,
+        "🎮 <b>صالة ألعاب ميسي</b>\nاختار اللعبة:",
+        reply_markup=keyboards.games(),
+    )
+
+
 # ---------------- الأسئلة ----------------
 
 async def send_question(message, chat_type_private):
@@ -375,10 +386,4 @@ async def cmd_poem(update, context, args):
     except ai.AIError as exc:
         await reply(update, f"🤖 {escape(exc)}\n\nخد دي من عندي:\n\n{build_poem()}")
     except Exception:
-        await reply(update, "😅 معرفتش أألف دلوقتي، جرب بعد شوية.") @command("لعبه", "العاب", "games")
-async def cmd_game(update, context, args):
-    await reply(
-        update,
-        "🎮 <b>صالة ألعاب ميسي</b>\nاختار اللعبة:",
-        reply_markup=keyboards.games(),
-    )
+        await reply(update, "😅 معرفتش أألف دلوقتي، جرب بعد شوية.")
