@@ -13,7 +13,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b").strip()
 OWNER_ID = int(os.getenv("BOT_OWNER_ID", "0") or 0)
 
-DB_PATH = BASE_DIR / "data" / "messi.sqlite3"
+# على Render: اربط Persistent Disk على /var/data وضيف DATA_DIR=/var/data
+DB_PATH = Path(os.getenv("DATA_DIR", BASE_DIR / "data")) / "messi.sqlite3"
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 BOT_NAME = "ميسي بوت"
