@@ -1,4 +1,7 @@
 import logging
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from telegram import BotCommand, Update
 from telegram.ext import (
@@ -24,6 +27,35 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("MESSI")
 
+
+# ---------- سيرفر صحة صغير (لازم لـ Render Web Service) ----------
+
+class _Health(BaseHTTPRequestHandler):
+    def _ok(self):
+        self.send_response(200)
+        self.end_headers()
+
+    def do_GET(self):
+        self._ok()
+        self.wfile.write(b"Messi Bot is alive")
+
+    def do_HEAD(self):
+        self._ok()
+
+    def log_message(self, *args):
+        pass
+
+
+def start_health_server():
+    port = os.getenv("PORT")
+    if not port:
+        return
+    server = HTTPServer(("0.0.0.0", int(port)), _Health)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    log.info("Health server listening on port %s", port)
+
+
+# ---------- دورة حياة البوت ----------
 
 async def post_init(app):
     await database.init()
@@ -108,6 +140,8 @@ def main():
         app.job_queue.run_repeating(jobs.cleanup_job, interval=600, first=600, name="cleanup")
     else:
         log.warning("JobQueue مش متسطب. ثبّت: pip install 'python-telegram-bot[job-queue]'")
+
+    start_health_server()
 
     log.info("MESSI BOT STARTING | MODEL=%s | SALAWAT every %ss", GROQ_MODEL, SALAWAT_INTERVAL)
     app.run_polling(
